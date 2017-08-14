@@ -1,13 +1,12 @@
 
-#For rbindlist in the moneyball function (combines list of dataframes into one big one)
+#to do rbindlist
 library(data.table)
-
 #For data manipulation
 library(dplyr)
 #Web scraping package
 library(rvest)
-
-
+#handle time data
+library(lubridate)
 
 fetch<-function(ballclub, season)
   #Start the function
@@ -88,6 +87,9 @@ fetch<-function(ballclub, season)
   df <- df %>% 
     mutate(Date = paste(Year, MonthNum, DayNum, sep='-'))
   
+  #df$Date <- as.Date(df$Date)
+  #df$Year <- year(df$Date)
+  
   #Change Streak to a numeric with negatives for losses
   df$Streak<- as.character(df$Streak)
   
@@ -132,9 +134,6 @@ fetch<-function(ballclub, season)
   #End the function
 }
 
-
-test<-fetch("DET","2016")
-
 #Create a function that performs fetch on multiple seasons and then binds them to one dataframe
 
 moneyball<- function(ballclub, start, end){
@@ -145,9 +144,21 @@ moneyball<- function(ballclub, start, end){
   list<-lapply(seasons, FUN = function(x){fetch(ballclub, x)})
   
   df<-rbindlist(list)
+  #fix dates
+  df$Date <- as.Date(df$Date)
+  #Feature Engineering
+  df <- df %>%
+    mutate(Year=year(df$Date),
+           Month=month(df$Date),
+           Weekday=weekdays(df$Date),
+           Weekend=Weekday %in% c("Saturday","Sunday")) %>%
+    na.omit() %>%
+    filter(Location=="Home")
   
   return(data.frame(df))
   rm(list=ls())
 }
 
 basic<-data.frame(moneyball("CHC", 2004, 2016))
+
+
