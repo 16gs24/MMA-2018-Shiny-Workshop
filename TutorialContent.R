@@ -45,8 +45,11 @@ server <-   shinyServer(
     filtered <- reactive({
       basic %>%
         filter(
-            Weekday %in% input$dayofweek &
-            Month %in% input$month)
+              Weekday %in% input$dayofweek &
+                #We need to select more than the small input slider
+                #and less than the largest
+              Month>=input$month[1] & 
+              Month<=input$month[2])
       })
     #first output is our summary statistics  
     output$summary <- renderPrint({
@@ -59,7 +62,7 @@ server <-   shinyServer(
     #next we will get a table of the head of 8 games
     output$raw <- renderTable({
       data <- filtered()
-      head(data,8)
+      str(data)
     })
     
     #finally build a ggplot with scatter plot of Attendance vs our choice

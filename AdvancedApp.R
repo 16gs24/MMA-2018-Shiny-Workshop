@@ -27,7 +27,7 @@ ui <- shinyUI(
       ) ,
       #enough inputs. what outputs do we want to look at.
       mainPanel(
-                plotOutput('scatter'),
+        plotOutput('scatter'),
         #Show Summary stats
         verbatimTextOutput('summary'),
         #show the head of our data
@@ -45,9 +45,12 @@ server <-   shinyServer(
     filtered <- reactive({
       basic %>%
         filter(
-            Weekday %in% input$dayofweek &
-            Month %in% input$month)
-      })
+          Weekday %in% input$dayofweek &
+            #We need to select more than the small input slider
+            #and less than the largest
+            Month>=input$month[1] & 
+            Month<=input$month[2])
+    })
     #first output is our summary statistics  
     output$summary <- renderPrint({
       #to get our data reactively filtered, we need to redefine our 
@@ -59,7 +62,7 @@ server <-   shinyServer(
     #next we will get a table of the head of 8 games
     output$raw <- renderTable({
       data <- filtered()
-      head(data,8)
+      str(data)
     })
     
     #finally build a ggplot with scatter plot of Attendance vs our choice
@@ -68,11 +71,11 @@ server <-   shinyServer(
       
       #we need aes_string since input$xcol isn't inside data
       ggplot(data=data,aes_string(x=input$xcol, 
-                                   y='Attendance',
-                                   col=input$color))+
+                                  y='Attendance',
+                                  col=input$color))+
         geom_point()
-      })
-})
+    })
+  })
 
 # Run the application on the Local Host
 shinyApp(ui = ui, server = server)
