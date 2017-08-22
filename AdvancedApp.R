@@ -11,9 +11,11 @@ ui <- shinyUI(
     sidebarLayout(
       sidebarPanel(
         #Input for the x variable of scatterplot
-        selectInput('xcol', 'X Variable', names(basic)),
+        selectInput('xcol', 'X Variable (Continuous only)',
+                    c('Date','Game','Rank','GB','Streak','Year','Month')),
         #Input for the color of the scatterplot
-        selectInput('color','Color By',names(basic)),
+        selectInput('color','Color By (factors only)',
+                    c("Team","Day","WinPitch","LosePitch","Weekday","Weekend")),
         #Slider for a selection of months
         sliderInput(inputId='month',
                     label="Choose Months to View",
@@ -26,13 +28,16 @@ ui <- shinyUI(
           selected = unique(basic$Weekday))
       ) ,
       #enough inputs. what outputs do we want to look at.
-      mainPanel(
-        plotOutput('scatter'),
+      mainPanel(tabsetPanel(
+        tabPanel("Visualization",(plotOutput('scatter')),
         #Show Summary stats
-        verbatimTextOutput('summary'),
+        verbatimTextOutput('summary')),
+        tabPanel("Univariate Analysis",
+                 plotOutput('Xhistogram'),
+                 plotOutput('AttendanceHistogram')),
         #show the head of our data
-        tableOutput('raw')
-      )
+        tabPanel("Raw Data",tableOutput('raw')
+      )))
     )
   )
 )
@@ -62,7 +67,7 @@ server <-   shinyServer(
     #next we will get a table of the head of 8 games
     output$raw <- renderTable({
       data <- filtered()
-      str(data)
+      return(data)
     })
     
     #finally build a ggplot with scatter plot of Attendance vs our choice
@@ -72,8 +77,34 @@ server <-   shinyServer(
       #we need aes_string since input$xcol isn't inside data
       ggplot(data=data,aes_string(x=input$xcol, 
                                   y='Attendance',
-                                  col=input$color))+
-        geom_point()
+                                  col=input$color))+  
+        theme_set(theme_gray(base_size = 16))+
+        theme(panel.background = element_rect(fill = "white", colour = "grey50"))+
+        scale_fill_discrete(palette="Blues")+
+        geom_point()+
+        scale_y_continuous(limits=c(20000,41000))
+    })
+    
+    output$Xhistogram <- renderPlot({
+      data <- filtered()
+      
+      #we need aes_string since input$xcol isn't inside data
+      ggplot(data=data,aes_string(x=input$xcol))+
+        geom_histogram()+  
+        theme_set(theme_gray(base_size = 16))+
+        theme(panel.background = element_rect(fill = "white", colour = "grey50"))+
+        scale_fill_discrete(palette="Blues")
+    })
+    
+    output$AttendanceHistogram <- renderPlot({
+      data <- filtered()
+      
+      #we need aes_string since input$xcol isn't inside data
+      ggplot(data=data,aes_string(x="Attendance"))+
+        geom_histogram()+
+        theme_set(theme_gray(base_size = 16))+
+        theme(panel.background = element_rect(fill = "white", colour = "grey50"))+
+        scale_fill_discrete(palette="Blues")
     })
   })
 
