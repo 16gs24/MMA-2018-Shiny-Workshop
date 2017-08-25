@@ -1,15 +1,29 @@
 #load libraries
 library(shiny)
+library(shinythemes)
 library(tidyverse)
+library(rvest)
+library(data.table)
+library(lubridate)
+library(plotly)
+
+#initialize our team
+# source("ScrapingData.R")
+# Team <- "TBJ"
+# basic<-data.frame(moneyball(Team, 2004, 2016))
+
 
 #begin by building out UI. We will use a sidebar for selections and 
 # a main bar that has a scatterplot, summary stats and the head
 ui <- shinyUI(
   #lets make dynamic pages
   fluidPage(
+    #set theme & name
+    headerPanel(paste('MMA Shiny Tutorial',Team,'Attendance',sep=" ")),
+    theme=shinytheme('readable'),
     #build out our side panel
     sidebarLayout(
-      sidebarPanel(
+      sidebarPanel("dropdowns not for plotly",
         #Input for the x variable of scatterplot
         selectInput('xcol', 'X Variable (Continuous only)',
                     c('Date','Game','Rank','GB','Streak','Year','Month')),
@@ -25,14 +39,18 @@ ui <- shinyUI(
           inputId='dayofweek',
           label='Day of Week',
           choices = unique(basic$Weekday),
-          selected = unique(basic$Weekday))
+          selected = unique(basic$Weekday)),
+        checkboxInput('jitter','Jitter')
       ) ,
       #enough inputs. what outputs do we want to look at.
       mainPanel(tabsetPanel(
-        tabPanel("Visualization",(plotOutput('scatter')),
+        tabPanel("Plotly",
+                 plotlyOutput('plotly')),
+        tabPanel("ggplot Multivariate",
+                 plotOutput('scatter'),
         #Show Summary stats
         verbatimTextOutput('summary')),
-        tabPanel("Univariate Analysis",
+        tabPanel("ggplot Univariate",
                  plotOutput('Xhistogram'),
                  plotOutput('AttendanceHistogram')),
         #show the head of our data
@@ -73,21 +91,36 @@ server <-   shinyServer(
     #finally build a ggplot with scatter plot of Attendance vs our choice
     output$scatter <- renderPlot({
       data <- filtered()
-      
       #we need aes_string since input$xcol isn't inside data
-      ggplot(data=data,aes_string(x=input$xcol, 
+      viz <- ggplot(data=data,aes_string(x=input$xcol, 
                                   y='Attendance',
                                   col=input$color))+  
         theme_set(theme_gray(base_size = 16))+
         theme(panel.background = element_rect(fill = "white", colour = "grey50"))+
         scale_fill_discrete(palette="Blues")+
-        geom_point()+
-        scale_y_continuous(limits=c(20000,41000))
+        scale_y_continuous(limits=c(20000,41000))+
+        ggtitle("ggplot makes static plots")
+      if (input$jitter==TRUE){
+        viz + geom_jitter()
+      } else {
+        viz + geom_point()
+      }
     })
     
+    #PLOTLY
+    output$plotly <- renderPlotly({
+      data <- filtered()
+      p <- plot_ly(data=data,
+                   x=~Streak,
+                   y=~get(input$xcol),
+                   z=~Attendance,
+                   color=~get(input$color)) %>%
+      layout(title="Plotly can create interactive plots")
+    })
+    
+    #X HISTOGRAM
     output$Xhistogram <- renderPlot({
       data <- filtered()
-      
       #we need aes_string since input$xcol isn't inside data
       ggplot(data=data,aes_string(x=input$xcol))+
         geom_histogram()+  
@@ -96,9 +129,9 @@ server <-   shinyServer(
         scale_fill_discrete(palette="Blues")
     })
     
+    #ATTENDANCE HISTOGRAM
     output$AttendanceHistogram <- renderPlot({
       data <- filtered()
-      
       #we need aes_string since input$xcol isn't inside data
       ggplot(data=data,aes_string(x="Attendance"))+
         geom_histogram()+
