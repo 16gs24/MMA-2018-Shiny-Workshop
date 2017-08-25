@@ -1,6 +1,9 @@
 # MMA 2018 Shiny Workshop
-These documents were produced for a workshop offered to the MMA '18 Class. The goal to introduce students to the basics of Shiny. 
+These documents were produced for a workshop offered to the MMA '18 Class. 
 
-We'll begin by forking the repo, walking through the web scraper that's used to generate basic.csv
+The goals are:
+- Introduce students to `shiny` and `shinydashboards`. Discuss the framework used to develop them.
+- Introduce web scraping. Walk through `WebScraper.R` o pull Attendance data from Wrigley Field that is stored in `basic.csv`
+- Develop a shiny app that utilizes a variety of data inputs and a few outputs to 
+- Review `AdvancedApp.R` that focuses on some tools of interest: the `plotly` library and some other UI options.
 
-Then we will build a ui and server for the Shiny app and use it to investigate some drivers in Wrigley Field attendance.
