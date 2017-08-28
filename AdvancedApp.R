@@ -8,10 +8,10 @@ library(lubridate)
 library(plotly)
 
 #initialize our team
-# source("ScrapingData.R")
-# Team <- "TBJ"
-# basic<-data.frame(moneyball(Team, 2004, 2016))
-
+source("ScrapingData.R")
+Team <- "ATL"
+basic<-data.frame(moneyball(Team, 2004, 2016))
+write.csv(basic,"basic.csv")
 
 #begin by building out UI. We will use a sidebar for selections and 
 # a main bar that has a scatterplot, summary stats and the head

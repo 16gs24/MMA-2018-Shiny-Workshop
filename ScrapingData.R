@@ -160,5 +160,6 @@ moneyball<- function(ballclub, start, end){
 }
 
 basic<-data.frame(moneyball("CHC", 2004, 2016))
+write.csv(basic,"basic.csv")
 
 
