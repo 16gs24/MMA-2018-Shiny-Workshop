@@ -38,7 +38,7 @@ ui <- shinyUI(
 )
 
 # Server Code
-server <-   shinyServer(
+server <- shinyServer(
   function(input, output) {
     #begin by reactively filtering the data
     #filter for day of the week from selection, and month from slider
